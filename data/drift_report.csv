@@ -1,0 +1,5 @@
+Feature,Training Mean,Production Mean,Change %,Drift Flag
+Age,31.85,24.6,-22.8,DRIFT DETECTED
+Performance_Level,2.56,2.9,13.3,OK
+Remote_Work,0.5,0.7,40.0,DRIFT DETECTED
+Tenure_Years,3.98,0.74,-81.4,DRIFT DETECTED
