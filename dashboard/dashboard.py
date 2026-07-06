@@ -13,7 +13,7 @@ st.write(
     "salary estimation."
 )
 
-# ---------- Load data and model (deployment-safe absolute paths) ----------
+# Load data and model (deployment-safe absolute paths)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 @st.cache_data
@@ -27,7 +27,7 @@ def load_model():
 df = load_data()
 model = load_model()
 
-# ---------- Sidebar: interactive filters ----------
+# Sidebar: interactive filters
 st.sidebar.header("Filter Options")
 
 # Interactive feature 1: Department dropdown
@@ -50,7 +50,7 @@ if not df.empty:
             "Salary Range", min_sal, max_sal, value=(min_sal, max_sal))
         df = df[df["Salary"].between(sal_range[0], sal_range[1])]
 
-# ---------- Summary metrics ----------
+# Summary metrics
 st.subheader("Workforce Summary")
 c1, c2, c3 = st.columns(3)
 c1.metric("Employees (filtered)", len(df))
@@ -61,26 +61,26 @@ if df.empty:
     st.warning("No records match the selected filters.")
     st.stop()
 
-# ---------- Visualization 1: Salary distribution ----------
+# Visualization 1: Salary distribution
 st.subheader("1. Salary Distribution")
 fig1, ax1 = plt.subplots(figsize=(8, 3.5))
 sns.histplot(df["Salary"], bins=30, kde=True, ax=ax1)
 ax1.set_xlabel("Salary")
 st.pyplot(fig1)
 
-# ---------- Visualization 2: Average salary by department ----------
+# Visualization 2: Average salary by department
 st.subheader("2. Average Salary by Department")
 dept_salary = df.groupby("Department")["Salary"].mean().sort_values()
 st.bar_chart(dept_salary)
 
-# ---------- Visualization 3: Salary by performance score ----------
+# Visualization 3: Salary by performance score
 st.subheader("3. Salary by Performance Score")
 fig3, ax3 = plt.subplots(figsize=(8, 3.5))
 order = ["Poor", "Average", "Good", "Excellent"]
 sns.boxplot(x="Performance_Score", y="Salary", data=df, order=order, ax=ax3)
 st.pyplot(fig3)
 
-# ---------- Predictive output: salary estimation ----------
+# Predictive output: salary estimation
 st.subheader("4. Salary Prediction (Machine Learning Model)")
 st.write("Estimate the expected salary for an employee profile using the "
          "Gradient Boosting model developed in Sprint 3.")
@@ -120,35 +120,3 @@ if st.button("Predict Salary"):
 st.subheader("Filtered Employee Records")
 st.dataframe(df[["Employee_ID", "Department", "Region", "Status",
                  "Performance_Score", "Remote_Work", "Tenure_Years", "Salary"]])
-
-# ---------- Section 5: Model Monitoring (Sprint 4) ----------
-st.subheader("5. Model Monitoring")
-st.write("Post-deployment monitoring of prediction quality, speed, and "
-         "input drift, based on logged production predictions.")
-
-try:
-    logs = pd.read_csv(BASE_DIR / "data" / "monitoring_logs.csv")
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Production MAE", f"{logs['absolute_error'].mean():,.0f}")
-    rmse = ((logs["predicted_salary"] - logs["actual_salary"]) ** 2).mean() ** 0.5
-    m2.metric("Production RMSE", f"{rmse:,.0f}")
-    m3.metric("Avg Latency", f"{logs['latency_ms'].mean():.1f} ms")
-    m4.metric("Avg Feedback", f"{logs['feedback_score'].mean():.1f} / 5")
-
-    st.write("**Prediction Error per Logged Request**")
-    st.line_chart(logs.set_index("prediction_id")["absolute_error"])
-
-    st.write("**Monitoring Log**")
-    st.dataframe(logs)
-
-    st.write("**Input Drift Analysis (Training vs Production)**")
-    drift_report = pd.read_csv(BASE_DIR / "data" / "drift_report.csv",
-                               index_col=0)
-    st.dataframe(drift_report)
-    n_drift = (drift_report["Drift Flag"] == "DRIFT DETECTED").sum()
-    if n_drift > 0:
-        st.warning(f"Input drift detected in {n_drift} feature(s). The "
-                   "production population differs from the training data - "
-                   "model retraining is recommended in the next sprint.")
-except FileNotFoundError:
-    st.info("No monitoring data available yet.")
